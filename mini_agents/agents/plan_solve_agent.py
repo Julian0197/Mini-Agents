@@ -42,8 +42,8 @@ Please only output the answer for the "current step":
 
 class Planner:
     """Planner - responsible for decomposing complex problems into simple steps"""
-    def __init__(self, llm_client: MiniAgentsLLM, prompt_template: Optional[str] = None):
-        self.llm_client = llm_client
+    def __init__(self, llm: MiniAgentsLLM, prompt_template: Optional[str] = None):
+        self.llm = llm
         self.prompt_template = prompt_template if prompt_template else DEFAULT_PLANNER_PROMPT
 
     def create_plan(self, question: str, **kwargs) -> List[str]:
@@ -52,7 +52,7 @@ class Planner:
 
         print("--- Generating plan ---")
         chunks = []
-        for chunk in self.llm_client.stream(messages, **kwargs):
+        for chunk in self.llm.stream(messages, **kwargs):
             print(chunk, end="", flush=True)
             chunks.append(chunk)
         print()
@@ -69,8 +69,8 @@ class Planner:
 
 class Executor:
     """Executor - responsible for executing the plan step by step"""
-    def __init__(self, llm_client: MiniAgentsLLM, prompt_template: Optional[str] = None):
-        self.llm_client = llm_client
+    def __init__(self, llm: MiniAgentsLLM, prompt_template: Optional[str] = None):
+        self.llm = llm
         self.prompt_template = prompt_template if prompt_template else DEFAULT_EXECUTOR_PROMPT
 
     def execute(self, question: str, plan: List[str], **kwargs) -> str:
@@ -100,7 +100,7 @@ class Executor:
             )
             messages = [Message(content=prompt, role="system").to_dict()]
             step_chunks = []
-            for chunk in self.llm_client.stream(messages, **kwargs):
+            for chunk in self.llm.stream(messages, **kwargs):
                 print(chunk, end="", flush=True)
                 step_chunks.append(chunk)
             print()
@@ -129,7 +129,7 @@ class PlanAndSolveAgent(Agent):
     def __init__(
         self,
         name: str,
-        llm_client: MiniAgentsLLM,
+        llm: MiniAgentsLLM,
         system_prompt: Optional[str] = None,
         config: Optional[Config] = None,
         custom_prompts: Optional[Dict[str, str]] = None
@@ -144,7 +144,7 @@ class PlanAndSolveAgent(Agent):
             config: Config object
             custom_prompts: Custom prompt templates {"planner": "", "executor": ""}
         """
-        super().__init__(name, llm_client, system_prompt, config)
+        super().__init__(name, llm, system_prompt, config)
 
         # Set prompt templates: user custom takes priority, otherwise use default
         if custom_prompts:
@@ -154,8 +154,8 @@ class PlanAndSolveAgent(Agent):
             planner_prompt = None
             executor_prompt = None
 
-        self.planner = Planner(llm_client, planner_prompt)
-        self.executor = Executor(llm_client, executor_prompt)
+        self.planner = Planner(llm, planner_prompt)
+        self.executor = Executor(llm, executor_prompt)
 
     def run(self, input_text: str, **kwargs) -> str:
         """

@@ -7,6 +7,7 @@ from .core.exceptions import MiniAgentsException
 
 # agents
 from .agents.plan_solve_agent import PlanAndSolveAgent
+from .agents.reflection_agent import ReflectionAgent
 
 __all__ = [
     # Core
@@ -18,4 +19,5 @@ __all__ = [
 
     # Agents
     "PlanAndSolveAgent",
+    "ReflectionAgent",
 ]
