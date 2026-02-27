@@ -3,5 +3,6 @@
 """
 
 from .search_tool import SearchTool
+from .file_tool import FileTool 
 
-__all__ = ["SearchTool"]
+__all__ = ["SearchTool", "FileTool"]
